@@ -3,7 +3,7 @@
 # netstat -aon | findstr :6006
 
 
-# LOGDIR="Project/Training/Logs/PPO_3"
+# LOGDIR="Project/Training/Logs/PPO_6"
 
 # # taskkill //PID 20784 //F
 
@@ -14,7 +14,7 @@
 
 # 要使用的端口和日志目录
 PORT=6006
-LOGDIR="Project/Training/Logs/PPO_3"
+LOGDIR="Project/Training/Logs/PPO_13"
 
 # 1) 找到占用端口的 LISTENING 行
 LINE=$(netstat -aon | findstr ":${PORT}" | findstr LISTENING)

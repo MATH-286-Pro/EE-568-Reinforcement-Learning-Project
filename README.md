@@ -1,11 +1,17 @@
 # **Instructions**
 
 
-## Learning
+## **Project Guide**
+1. go to folder `Project` and `open main.py`
+2. run `main.py` will automatically create training data in `Training` folder will model.zip and relevant data
+
+
+
+<!-- ## **Learning**
 [OpenAI Gym Website](https://gymnasium.farama.org/)
 
 
-## Code
+## **Code**
 ```bash
 # install gymnasium    # 安装 gymnasium
 pip install gymnasium
@@ -14,7 +20,7 @@ pip install gymnasium
 pip install --upgrade gymnasium
 ```
 
-## Gym 
+## **Gym** 
 
 ```python
 import gymnasium as gym
@@ -28,4 +34,4 @@ observation, reward, ... = env.step(action)
 ```
 
 
-## Stable-baselines3
+## **Stable-baselines3** -->
