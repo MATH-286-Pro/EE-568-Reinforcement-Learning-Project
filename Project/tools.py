@@ -57,13 +57,18 @@ def plot_tensor_result(log_dir):
 
 
 
-def test_model(model_type, model_path, n_episodes=5):
+def test_model(model_type, model_path, n_episodes=5, render = False, record = False):
 
     print(model_path)
 
+    if render:
+        render_mode = "human"
+    else:
+        render_mode = None
+
     # 初始化环境
     # Initialize the environment
-    env = gym.make("CartPole-v1", render_mode="human") 
+    env = gym.make("CartPole-v1", render_mode = render_mode) 
     env = DummyVecEnv([lambda: env])  
     obs = env.reset()
 
@@ -73,10 +78,12 @@ def test_model(model_type, model_path, n_episodes=5):
         model = PPO.load(model_path,
                          device = "cpu",
                          env = env)
-    else:
+    elif model_type == "DQN":
         model = DQN.load(model_path,
                         device = "cpu",
                         env = env)
+    else:
+        raise ValueError("Unsupported model type. Use 'PPO' or 'DQN'.")
 
 
     # 开始测试
