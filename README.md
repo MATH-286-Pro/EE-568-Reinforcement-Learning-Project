@@ -52,6 +52,7 @@ obs, reward, terminated, truncated, info = env.step(action) # gymnasium 返回5�
 ```
 
 
+## **RLHF 基于人类反馈的强化学习**
 
 
 
