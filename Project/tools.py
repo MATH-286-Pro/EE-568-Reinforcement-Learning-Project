@@ -10,7 +10,7 @@ import json
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
-
+from gymnasium.wrappers import RecordVideo
 
 def plot_tensor_result(log_dir):
     # 读取所有标量
@@ -57,47 +57,100 @@ def plot_tensor_result(log_dir):
 
 
 
-def test_model(model_type, model_path, n_episodes=5, render = False, record = False):
+def test_model(model_type, model_path, n_episodes=5, render=False, record=False, traj=False):
 
     print(model_path)
 
-    if render:
-        render_mode = "human"
-    else:
-        render_mode = None
+    # 录像 & csv 路径
+    path_list = model_path.split("\\")
+    base_dir = "\\".join(path_list[:-1])
+    video_path = os.path.join(base_dir, "videos")
+    # video_path = os.path.join(base_dir)
+    os.makedirs(video_path, exist_ok=True)
 
-    # 初始化环境
-    # Initialize the environment
-    env = gym.make("CartPole-v1", render_mode = render_mode) 
-    env = DummyVecEnv([lambda: env])  
-    obs = env.reset()
+    # 根据模型名设定前缀
+    if path_list[-1] == "model_full_training.zip" or path_list[-1] == "model_full_training":
+        name_prefix_ = "Pi-1"  
+    else: 
+        name_prefix_ = "Pi-2"
+
+    # 初始化环境的渲染模式
+    render_mode = "human" if render else None
+    
+    if record:
+        render_mode = "rgb_array"
+
+    env = gym.make("CartPole-v1", render_mode=render_mode)
+    if record:
+        env = RecordVideo(
+            env,
+            video_folder=video_path,
+            episode_trigger=lambda ep_id: ep_id < n_episodes,
+            name_prefix=name_prefix_
+        )
+    env = DummyVecEnv([lambda: env])
+
+    print("")
+
+    # 如果要记录轨迹，准备容器
+
 
     # 加载模型
-    # Load the model
     if model_type == "PPO":
-        model = PPO.load(model_path,
-                         device = "cpu",
-                         env = env)
+        model = PPO.load(model_path, device="cpu", env=env)
     elif model_type == "DQN":
-        model = DQN.load(model_path,
-                        device = "cpu",
-                        env = env)
+        model = DQN.load(model_path, device="cpu", env=env)
     else:
         raise ValueError("Unsupported model type. Use 'PPO' or 'DQN'.")
 
-
     # 开始测试
-    # Start testing
-    for episode in range(n_episodes):
-        score = 0
+    for ep in range(n_episodes):
+        obs = env.reset()           # NOTE: VecEnv reset
         done = False
-        while done == False:
-            action, _ = model.predict(obs)            # 获取行为  
-            obs, reward, done, _ = env.step(action)   # 环境交互
-            score += reward                           # 回报计算
-        print(f"Episode: {episode + 1} Score: {score}")
-    env.close()
+        score = 0
+        step  = 0
 
+        # 每次清空
+        if traj:
+            traj_data = []
+
+        while not done:
+            action, _ = model.predict(obs)
+            obs_next, reward, done, _ = env.step(action)
+            score += reward[0]
+            
+            if traj:
+                # 展平 obs（假设 shape=(1,4)），取第 0 个环境
+                o = obs[0]
+                traj_data.append({
+                    "episode": ep + 1,
+                    "step": step,
+                    "x": float(o[0]),
+                    "x_dot": float(o[1]),
+                    "theta": float(o[2]),
+                    "theta_dot": float(o[3]),
+                    "action": int(action[0]),
+                    "reward": float(reward[0])
+                })
+
+            obs = obs_next
+            step += 1
+
+        # 输出轨迹到 CSV
+        if traj:
+            df = pd.DataFrame(traj_data)
+            csv_name = f"{name_prefix_}-trajectory-{ep}.csv"
+            csv_path = os.path.join(base_dir, "trajectory", csv_name)
+
+            os.makedirs(os.path.dirname(csv_path), exist_ok=True)
+
+            df.to_csv(csv_path, index=False)
+            print(f"Trajectory saved to: {csv_path}")
+
+
+        print(f"Episode: {ep+1} Score: {score}")
+
+    env.close()
 
 
 
