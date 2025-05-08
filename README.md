@@ -51,6 +51,9 @@ obs, rewards, dones, infos  = vec_env.step(actions) # stable_baselines3 返回4�
 obs, reward, terminated, truncated, info = env.step(action) # gymnasium 返回5个值
 ```
 
+## **Gym 环境自定义**
+
+
 
 ## **RLHF 基于人类反馈的强化学习**
 
